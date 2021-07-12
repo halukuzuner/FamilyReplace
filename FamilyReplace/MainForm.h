@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "FamilyReplace.h"
+
 namespace FamilyReplace {
 
 #pragma region namespaces 
@@ -28,25 +30,23 @@ namespace FamilyReplace {
 	using namespace Autodesk::Revit::UI::Events;
 	using namespace Autodesk::Revit::Exceptions;
 
+	//extern 	Connector connectedcon;
+	//extern 	Connector conn;
+
+	extern int degisken1;
+
 #pragma endregion 
 
 	/// <summary>
 	/// Summary for MainForm
 	/// </summary>
-	public ref class MainForm : public System::Windows::Forms::Form
+public ref class MainForm : public System::Windows::Forms::Form
 	{
-	public:
-		Autodesk::Revit::DB::Document^ document;
-		Autodesk::Revit::UI::UIApplication^ uiapp;
-
 	private: System::Windows::Forms::CheckedListBox^ checkedListBox1;
 	private: System::Windows::Forms::Button^ btnPickEl1;
 	private: System::Windows::Forms::DataGridView^ dataGridView1;
 	private: System::Windows::Forms::DataGridView^ dataGridView2;
 	private: System::Windows::Forms::Button^ btnDisconnect;
-
-
-
 
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ dataGridViewTextBoxColumn1;
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ dataGridViewTextBoxColumn2;
@@ -62,23 +62,45 @@ namespace FamilyReplace {
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column4;
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column5;
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column6;
-	
-	public:
+
+	//public: static property	Autodesk::Revit::UI::UIApplication^ CachedUIApp;
+	//public: static property	Autodesk::Revit::ApplicationServices::Application^ CachedApp;
+	//public: static property	Autodesk::Revit::DB::Document^ CachedDoc;
+
 		// Define a reference Object to accept the pick result
 		Reference^ pickedRef = nullptr;
 		// 4. Initialise empty list of connectors
 		List<Connector^>^ connectorList = gcnew List<Connector^>();
 
-		Connector^ connected;// = gcnew Connector;
+	private: System::Windows::Forms::Button^ button1;
 
-		MainForm(UIApplication^ CachedUiApp, Document^ CachedDoc)
+	public:
+		Connector^ connected;
+		Connector^ con1;
+		Connector^ con2;
+		FamilyInstance^ SprinklerInstance;
+	
+		ExternalEvent^ exevent;
+		UIApplication^ cachedUIApp;
+		RvtAppSrv::Application^ cachedApp;
+	private: System::Windows::Forms::Button^ btnInsertFamily;
+	public:
+
+	public:
+		Document^ cachedDoc;
+
+		MainForm(ExternalEvent^ exEvent, UIApplication^ uiapp)
 		{
-			document = CachedDoc;
-			uiapp = CachedUiApp;
+			exevent = exEvent;
+			cachedUIApp = uiapp;
+			cachedApp = cachedUIApp->Application;
+			cachedDoc = cachedUIApp->ActiveUIDocument->Document;
+			
 			InitializeComponent();
-			this->Text = CachedDoc->PathName;
-			label1->Text = CachedDoc->PathName;
+			this->Text = cachedDoc->PathName;
+			label1->Text = cachedDoc->PathName;
 			btnDisconnect->Enabled = false;
+			FamilyReplace::tamsayi = 23;
 			//
 			//TODO: Add the constructor code here
 			//
@@ -97,13 +119,8 @@ namespace FamilyReplace {
 		}
 	private: System::Windows::Forms::Button^ btnExit;
 
-
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::Label^ label2;
-	protected:
-
-	protected:
-
 	private:
 		/// <summary>
 		/// Required designer variable.
@@ -138,15 +155,17 @@ namespace FamilyReplace {
 			this->dataGridViewTextBoxColumn5 = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Column7 = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->btnDisconnect = (gcnew System::Windows::Forms::Button());
+			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->btnInsertFamily = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->dataGridView1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->dataGridView2))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// btnExit
 			// 
-			this->btnExit->Location = System::Drawing::Point(963, 497);
+			this->btnExit->Location = System::Drawing::Point(871, 497);
 			this->btnExit->Name = L"btnExit";
-			this->btnExit->Size = System::Drawing::Size(46, 28);
+			this->btnExit->Size = System::Drawing::Size(38, 28);
 			this->btnExit->TabIndex = 0;
 			this->btnExit->Text = L"E&xit";
 			this->btnExit->UseVisualStyleBackColor = true;
@@ -180,9 +199,9 @@ namespace FamilyReplace {
 			// 
 			// btnPickEl1
 			// 
-			this->btnPickEl1->Location = System::Drawing::Point(917, 72);
+			this->btnPickEl1->Location = System::Drawing::Point(825, 72);
 			this->btnPickEl1->Name = L"btnPickEl1";
-			this->btnPickEl1->Size = System::Drawing::Size(92, 25);
+			this->btnPickEl1->Size = System::Drawing::Size(84, 25);
 			this->btnPickEl1->TabIndex = 7;
 			this->btnPickEl1->Text = L"Pick Element&1";
 			this->btnPickEl1->UseVisualStyleBackColor = true;
@@ -199,7 +218,7 @@ namespace FamilyReplace {
 			this->dataGridView1->Location = System::Drawing::Point(167, 41);
 			this->dataGridView1->Name = L"dataGridView1";
 			this->dataGridView1->RowHeadersWidth = 25;
-			this->dataGridView1->Size = System::Drawing::Size(744, 244);
+			this->dataGridView1->Size = System::Drawing::Size(652, 244);
 			this->dataGridView1->TabIndex = 8;
 			this->dataGridView1->RowHeaderMouseClick += gcnew System::Windows::Forms::DataGridViewCellMouseEventHandler(this, &MainForm::dataGridView1_RowHeaderMouseClick);
 			// 
@@ -256,8 +275,9 @@ namespace FamilyReplace {
 			});
 			this->dataGridView2->Location = System::Drawing::Point(167, 299);
 			this->dataGridView2->Name = L"dataGridView2";
-			this->dataGridView2->Size = System::Drawing::Size(744, 226);
+			this->dataGridView2->Size = System::Drawing::Size(652, 226);
 			this->dataGridView2->TabIndex = 10;
+			this->dataGridView2->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &MainForm::dataGridView2_CellContentClick);
 			// 
 			// dataGridViewTextBoxColumn1
 			// 
@@ -291,19 +311,41 @@ namespace FamilyReplace {
 			// 
 			// btnDisconnect
 			// 
-			this->btnDisconnect->Location = System::Drawing::Point(917, 103);
+			this->btnDisconnect->Location = System::Drawing::Point(825, 103);
 			this->btnDisconnect->Name = L"btnDisconnect";
-			this->btnDisconnect->Size = System::Drawing::Size(92, 25);
+			this->btnDisconnect->Size = System::Drawing::Size(84, 25);
 			this->btnDisconnect->TabIndex = 13;
 			this->btnDisconnect->Text = L"Disconnect";
 			this->btnDisconnect->UseVisualStyleBackColor = true;
 			this->btnDisconnect->Click += gcnew System::EventHandler(this, &MainForm::btnDisconnect_Click);
 			// 
+			// button1
+			// 
+			this->button1->Location = System::Drawing::Point(842, 393);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(67, 23);
+			this->button1->TabIndex = 14;
+			this->button1->Text = L"button1";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &MainForm::button1_Click);
+			// 
+			// btnInsertFamily
+			// 
+			this->btnInsertFamily->Location = System::Drawing::Point(842, 443);
+			this->btnInsertFamily->Name = L"btnInsertFamily";
+			this->btnInsertFamily->Size = System::Drawing::Size(67, 37);
+			this->btnInsertFamily->TabIndex = 15;
+			this->btnInsertFamily->Text = L"Insert Family";
+			this->btnInsertFamily->UseVisualStyleBackColor = true;
+			this->btnInsertFamily->Click += gcnew System::EventHandler(this, &MainForm::btnInsertFamily_Click);
+			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(1015, 531);
+			this->ClientSize = System::Drawing::Size(910, 531);
+			this->Controls->Add(this->btnInsertFamily);
+			this->Controls->Add(this->button1);
 			this->Controls->Add(this->btnDisconnect);
 			this->Controls->Add(this->dataGridView2);
 			this->Controls->Add(this->dataGridView1);
@@ -312,7 +354,7 @@ namespace FamilyReplace {
 			this->Controls->Add(this->label2);
 			this->Controls->Add(this->label1);
 			this->Controls->Add(this->btnExit);
-			this->Location = System::Drawing::Point(100, 400);
+			this->Location = System::Drawing::Point(20, 500);
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::Manual;
 			this->Text = L"My Project";
@@ -328,9 +370,9 @@ namespace FamilyReplace {
 	}
 	private: System::Void btnSelect_Click(System::Object^ sender, System::EventArgs^ e) {
 		checkedListBox1->Items->Clear();
-		label2->Text = document->PathName;
+		label2->Text = cachedDoc->PathName;
 		//Pick an element
-		Autodesk::Revit::UI::Selection::Selection^ sel = uiapp->ActiveUIDocument->Selection;
+		Autodesk::Revit::UI::Selection::Selection^ sel = cachedUIApp->ActiveUIDocument->Selection;
 		System::Collections::Generic::IList<Reference^>^ elem = sel->PickObjects(ObjectType::Element, "Select elements");
 		for (int i = 0; i < elem->Count; i++)
 		{
@@ -345,16 +387,20 @@ private: System::Void btnPickEl_Click(System::Object^ sender, System::EventArgs^
 
 	//Reference^ pickedRef = nullptr;//Moved to form public part.
 	
-	// Pick a group
-	Autodesk::Revit::UI::Selection::Selection^ sel = uiapp->ActiveUIDocument->Selection;
+	// Pick an element
+	Autodesk::Revit::UI::Selection::Selection^ sel = cachedUIApp->ActiveUIDocument->Selection;
 	pickedRef = sel->PickObject(ObjectType::Element, "Please select an element");
-	Element^ elem = document->GetElement(pickedRef);
+	Element^ elem = cachedDoc->GetElement(pickedRef);
 
 	checkedListBox1->Items->Add(elem->Id->ToString());
 	
 	// 1. Cast Element to FamilyInstance
 	FamilyInstance^ inst = (FamilyInstance^) elem;
-	
+
+	//Write family name and type to label2
+	SprinklerInstance = inst;
+	label2->Text = inst->Symbol->Family->Name + " -> " + inst->Name ;
+
 	// 2. Get MEPModel Property
 	MEPModel^ mepModel = inst->MEPModel;
 	
@@ -420,12 +466,63 @@ private: System::Void dataGridView1_RowHeaderMouseClick(System::Object^ sender, 
 	}
 }
 private: System::Void btnDisconnect_Click(System::Object^ sender, System::EventArgs^ e) {	
-	ConnectorSet^ connectedSett = connectorList[0]->AllRefs;
+	ConnectorSet^ connectedSett = connectorList[0]->AllRefs; //"ConnectorList" is defined in the beginning of MainForm.
 	ConnectorSetIterator^ csii = connectedSett->ForwardIterator();
 	csii->MoveNext();
 	Connector^ connectedcon = (Connector^)csii->Current;
 	Connector^ conn = connectorList[0];
-	conn->DisconnectFrom(connectedcon);	
+
+	con1 = connectedcon;
+	con2 = conn;
+	
+	label1->Text = "Basla";
+	tamsayi = 152;
+	BreakConnection^ brc = gcnew BreakConnection;
+	brc->Execute(cachedUIApp);
+
 	}
+private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
+		tamsayi = 266;
+		BreakConnection^ brc = gcnew BreakConnection;
+		brc->Execute(cachedUIApp);
+	}
+private: System::Void dataGridView2_CellContentClick(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {
+}
+private: System::Void btnInsertFamily_Click(System::Object^ sender, System::EventArgs^ e) {
+	//====Insert family instance
+	Transaction^ trx = gcnew Transaction(cachedDoc, "Insert Sprinkler");
+	Reference^ pickRef = nullptr;
+	Autodesk::Revit::UI::Selection::Selection^ sel1 = cachedUIApp->ActiveUIDocument->Selection;
+	pickRef = sel1->PickObject(ObjectType::Element, "Please select an element");
+	Element^ elem1 = cachedDoc->GetElement(pickRef);
+
+	XYZ^ pnt = gcnew XYZ(0, 0, 0);
+	XYZ^ pntdir = gcnew XYZ(0, 0, 1);
+	Level^ Level1;
+	//TaskDialog::Show("External Event", elem1.na );
+
+	FilteredElementCollector^ collector = gcnew FilteredElementCollector(cachedDoc);
+	//Type^ t = Level1::typeid;
+	collector->OfClass(FamilySymbol::typeid)->OfCategory(BuiltInCategory::OST_Sprinklers);
+
+	FamilySymbol^ gotSymbol = (FamilySymbol^)collector->FirstElement();
+
+	FamilyInstance^ FInstance = nullptr;
+	trx->Start();
+	TaskDialog::Show("trasaction başladı mı?", trx->GetStatus().ToString());
+	if (nullptr != gotSymbol)
+	{
+		TaskDialog::Show("Inside if", "Inside if.");
+		gotSymbol->Activate();
+		FInstance = (FamilyInstance^)cachedDoc->Create->
+			NewFamilyInstance(pnt, gotSymbol, Level1, StructuralType::NonStructural);
+
+		TaskDialog::Show("After insert family instance", "After insert family instance");
+	}
+	trx->Commit();
+
+	//====End of Insert family instance
+
+}
 };
 }
