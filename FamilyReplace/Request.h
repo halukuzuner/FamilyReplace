@@ -1,4 +1,5 @@
 // Request.h
+#include "pch.h"
 
 using namespace System;
 using namespace System::Threading;
@@ -65,8 +66,8 @@ namespace FamilyReplace
   public ref class Request
   {
     // Storing the value as a plain Int makes using the interlocking mechanism simpler
-  public: int m_request = 0;// (int)RequestId::None;
-
+  public: int m_request = (int)RequestId::None;
+        
       /// <summary>
       ///   Take - The Idling handler calls this to obtain the latest request. 
       /// </summary>
@@ -75,7 +76,11 @@ namespace FamilyReplace
       ///   with 'None' to indicate that the request has been "passed on".
       /// </remarks>
       ///  
-    public: RequestId Take();
+
+  public: RequestId Take()
+      {
+        return (RequestId)Interlocked::Exchange(Request::m_request, (int)RequestId::None);
+      }
 
       /// <summary>
       ///   Make - The Dialog calls this when the user presses a command button there. 
@@ -84,6 +89,10 @@ namespace FamilyReplace
       ///   It replaces any older request previously made.
       /// </remarks>
       /// 
-  public: void Make(RequestId);
+ 
+      void Make(RequestId request)
+      {
+        Interlocked::Exchange((int)Request::m_request, (int)request);
+      } 
   };
 }
