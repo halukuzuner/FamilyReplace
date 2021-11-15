@@ -53,7 +53,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Request.cpp">
+    <ClCompile Include="Request.h.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RequestHandler.cpp">

@@ -1,4 +1,3 @@
-// RequestHandler.h
 //
 // (C) Copyright 2003-2019 by Autodesk, Inc.
 //
@@ -21,8 +20,9 @@
 // (Rights in Technical Data and Computer Software), as applicable.
 //
 
-#include "pch.h"
-/*#include "Request.h"
+#pragma once
+
+#include "Request.h"
 
 using namespace System;
 using namespace System::Collections::Generic;
@@ -32,81 +32,200 @@ using namespace Autodesk::Revit::UI;
 
 namespace FamilyReplace
 {
-    /// <summary>
-    ///   A class with methods to execute requests made by the dialog user.
-    /// </summary>
-    /// 
-    public ref class RequestHandler : IExternalEventHandler
+  /// <summary>
+  ///   A class with methods to execute requests made by the dialog user.
+  /// </summary>
+  /// 
+  public ref class RequestHandler : IExternalEventHandler
     {
     // A trivial delegate, but handy
-    private: delegate void DoorOperation(FamilyInstance^);
+    private: delegate void DoorOperation(FamilyInstance^ e);
 
     // The value of the latest request made by the modeless form 
-    private: Request^ m_request = gcnew FamilyReplace::Request;
+    private: Request^ m_request = gcnew Request;
 
-        /// <summary>
-        /// A public property to access the current request value
-        /// </summary>
-//    public: Request^ Request;
+    /// <summary>
+    /// A public property to access the current request value
+    /// </summary>
+    public: Request^ Request
+    {
+      Request get() { return m_request; }
+    }
 
-        /// <summary>
-        ///   A method to identify this External Event Handler
-        /// </summary>
-    public: virtual String^ RequestHandler::GetName();
+      /// <summary>
+      ///   A method to identify this External Event Handler
+      /// </summary>
+    public: String^ GetName()
+      {
+        String^ ret = "R2021 External Event Sample";
+        return ret->ToString();
+      }
+         
+    /// <summary>
+    ///   The top method of the event handler.
+    /// </summary>
+    /// <remarks>
+    ///   This is called by Revit after the corresponding
+    ///   external event was raised (by the modeless form)
+    ///   and Revit reached the time at which it could call
+    ///   the event's handler (i.e. this object)
+    /// </remarks>
+    /// 
+    public: void Execute(UIApplication^ uiapp)
+    {
+      try
+      {
+        switch (Request::Take())
+        {
+        case RequestId::None:
+            {
+              return;  // no request at this time -> we can leave immediately
+            }
+        case RequestId::Delete:
+            {
+            ModifySelectedDoors(uiapp, "Delete doors", e = > e.Document.Delete(e.Id));
+            break;
+            }
+        case RequestId::FlipLeftRight:
+            {
+              ModifySelectedDoors(uiapp, "Flip door Hand", e = > e.flipHand());
+              break;
+            }
+        case RequestId::FlipInOut:
+            {
+              ModifySelectedDoors(uiapp, "Flip door Facing", e = > e.flipFacing());
+              break;
+            }
+        case RequestId::MakeLeft:
+            {
+              ModifySelectedDoors(uiapp, "Make door Left", MakeLeft);
+              break;
+            }
+        case RequestId::MakeRight:
+            {
+              ModifySelectedDoors(uiapp, "Make door Right", MakeRight);
+              break;
+            }
+        case RequestId::TurnOut:
+            {
+              ModifySelectedDoors(uiapp, "Place door Out", TurnOut);
+              break;
+            }
+        case RequestId::TurnIn:
+            {
+              ModifySelectedDoors(uiapp, "Place door In", TurnIn);
+              break;
+            }
+        case RequestId::Rotate:
+            {
+              ModifySelectedDoors(uiapp, "Rotate door", FlipHandAndFace);
+              break;
+            }
+        default:
+            {
+          // some kind of a warning here should
+          // notify us about an unexpected request 
+          break;
+            }
+      }
+        }
+        finally
+        {
+          Application->thisApp->WakeFormUp();
+        }
+    return;
+    }
 
+    /// <summary>
+    ///   The main door-modification subroutine - called from every request 
+    /// </summary>
+    /// <remarks>
+    ///   It searches the current selection for all doors
+    ///   and if it finds any it applies the requested operation to them
+    /// </remarks>
+    /// <param name="uiapp">The Revit application object</param>
+    /// <param name="text">Caption of the transaction for the operation.</param>
+    /// <param name="operation">A delegate to perform the operation on an instance of a door.</param>
+    /// 
+    private: void ModifySelectedDoors(UIApplication^ uiapp, String^ text, DoorOperation^ operation)
+    {
+        UIDocument^ uidoc = uiapp::ActiveUIDocument;
 
-          /// <summary>
-          ///   The top method of the event handler.
-          /// </summary>
-          /// <remarks>
-          ///   This is called by Revit after the corresponding
-          ///   external event was raised (by the modeless form)
-          ///   and Revit reached the time at which it could call
-          ///   the event's handler (i.e. this object)
-          /// </remarks>
-          /// 
-    public: virtual void Execute(UIApplication^);
+        // check if there is anything selected in the active document
 
-          /// <summary>
-          ///   The main door-modification subroutine - called from every request 
-          /// </summary>
-          /// <remarks>
-          ///   It searches the current selection for all doors
-          ///   and if it finds any it applies the requested operation to them
-          /// </remarks>
-          /// <param name="uiapp">The Revit application object</param>
-          /// <param name="text">Caption of the transaction for the operation.</param>
-          /// <param name="operation">A delegate to perform the operation on an instance of a door.</param>
-          /// 
-    private: void ModifySelectedDoors(UIApplication^, String^, DoorOperation^);
+        if ((uidoc != nullptr) && (uidoc->Selection != nullptr))
+        {
+            ICollection<ElementId^>^ selElements = uidoc.Selection.GetElementIds();
+            if (selElements.Count > 0)
+            {
+              // Filter out all doors from the current selection
 
-           //////////////////////////////////////////////////////////////////////////
-           //
-           // Helpers - simple delegates operating upon an instance of a door
+              FilteredElementCollector^ collector = gcnew FilteredElementCollector(uidoc->Document, selElements);
+              ICollection<Element^>^ doorset = collector::OfCategory(BuiltInCategory::OST_Doors).ToElements();
 
-    private: void FlipHandAndFace(FamilyInstance^);
+              if (doorset != nullptr)
+              {
+                // Since we'll modify the document, we need a transaction
+                // It's best if a transaction is scoped by a 'using' block
+                Transaction^ trans = gcnew Transaction(uidoc->Document);
+                  // The name of the transaction was given as an argument
 
-           // Note: The door orientation [left/right] is according the common
-           // conventions used by the building industry in the Czech Republic.
-           // If the convention is different in your county (like in the U.S),
-           // swap the code of the MakeRight and MakeLeft methods.
+                  if (trans->Start(text) == TransactionStatus->Started)
+                  {
+                    // apply the requested operation to every door
 
-    private: static void MakeLeft(FamilyInstance^);
+                    foreach(FamilyInstance door in doorset)
+                    {
+                      operation(door);
+                    }
 
-    private: void MakeRight(FamilyInstance^);
+                    trans->Commit();
+                  }             
+              }
+            }
+        }
+    }
 
-           // Note: The In|Out orientation depends on the position of the
-           // wall the door is in; therefore it does not necessary indicates
-           // the door is facing Inside, or Outside, respectively.
-           // The presented implementation is good enough to demonstrate
-           // how to flip a door, but the actual algorithm will likely
-           // have to be changes in a read-world application.
+    //////////////////////////////////////////////////////////////////////////
+    //
+    // Helpers - simple delegates operating upon an instance of a door
 
-    private: void TurnIn(FamilyInstance^);
+    private: void FlipHandAndFace(FamilyInstance^ e)
+    {
+      e.flipFacing(); e.flipHand();
+    }
 
-    private: void TurnOut(FamilyInstance^);
-    
-    };  // class
+    // Note: The door orientation [left/right] is according the common
+    // conventions used by the building industry in the Czech Republic.
+    // If the convention is different in your county (like in the U.S),
+    // swap the code of the MakeRight and MakeLeft methods.
 
+    private: static void MakeLeft(FamilyInstance^ e)
+    {
+      if (e.FacingFlipped ^ e.HandFlipped) e.flipHand();
+    }
+
+    private: void MakeRight(FamilyInstance^ e)
+    {
+      if (!(e.FacingFlipped ^ e.HandFlipped)) e.flipHand();
+    }
+
+    // Note: The In|Out orientation depends on the position of the
+    // wall the door is in; therefore it does not necessary indicates
+    // the door is facing Inside, or Outside, respectively.
+    // The presented implementation is good enough to demonstrate
+    // how to flip a door, but the actual algorithm will likely
+    // have to be changes in a read-world application.
+
+    private: void TurnIn(FamilyInstance^ e)
+    {
+      if (!e.FacingFlipped) e.flipFacing();
+    }
+
+    private: void TurnOut(FamilyInstance^ e)
+    {
+      if (e.FacingFlipped) e.flipFacing();
+    }
+
+  };  // class
 }  // namespace
-*/

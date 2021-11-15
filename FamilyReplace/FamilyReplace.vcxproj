@@ -139,7 +139,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Request.cpp" />
+    <ClCompile Include="Request.h.cpp" />
     <ClCompile Include="RequestHandler.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>

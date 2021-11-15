@@ -1,8 +1,9 @@
 ﻿#pragma once
 
+#include "pch.h"
 #include "FamilyReplace.h"
-#include "Request.h"
-#include "RequestHandler.cpp"
+//#include "Request.h"
+//#include "RequestHandler.h"
 
 namespace FamilyReplace {
 
@@ -31,11 +32,6 @@ namespace FamilyReplace {
 	using namespace Autodesk::Revit::UI::Selection;
 	using namespace Autodesk::Revit::UI::Events;
 	using namespace Autodesk::Revit::Exceptions;
-
-	//extern 	Connector connectedcon;
-	//extern 	Connector conn;
-
-	extern int degisken1;
 
 #pragma endregion 
 
@@ -86,9 +82,16 @@ namespace FamilyReplace {
 					 m_ExEvent = exEvent;
 				 }
 */
-		// Define a reference Object to accept the pick result
-		Reference^ pickedRef = nullptr;
-		// 4. Initialise empty list of connectors
+
+	/// <summary>
+	/// Define a reference Object to accept the pick result
+	/// <summary>
+
+	Reference^ pickedRef = nullptr;
+
+	/// <summary>
+	///<summary> 4. Initialise empty list of connectors
+	/// <summary>
 		List<Connector^>^ connectorList = gcnew List<Connector^>();
 
 	private: System::Windows::Forms::Button^ button1;
@@ -108,10 +111,10 @@ namespace FamilyReplace {
 	public:
 		Document^ cachedDoc;
 
-		MainForm(ExternalEvent^ exEvent, UIApplication^ uiapp)
+		MainForm(ExternalEvent^ exEvent, UIApplication^ uiaPP)
 		{
 			exevent = exEvent;
-			cachedUIApp = uiapp;
+			cachedUIApp = uiaPP;
 			cachedApp = cachedUIApp->Application;
 			cachedDoc = cachedUIApp->ActiveUIDocument->Document;
 			
@@ -119,7 +122,6 @@ namespace FamilyReplace {
 			this->Text = cachedDoc->PathName;
 			label1->Text = cachedDoc->PathName;
 			btnDisconnect->Enabled = false;
-			FamilyReplace::tamsayi = 23;
 			//
 			//TODO: Add the constructor code here
 			//
@@ -129,6 +131,7 @@ namespace FamilyReplace {
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
+
 		~MainForm()
 		{
 			if (components)
@@ -489,7 +492,7 @@ namespace FamilyReplace {
 		}
 	private: System::Void btnDisconnect_Click(System::Object^ sender, System::EventArgs^ e) 
 		{	
-			ConnectorSet^ connectedSett = connectorList[0]->AllRefs; //"ConnectorList" is defined in the beginning of MainForm.
+		/*	ConnectorSet^ connectedSett = connectorList[0]->AllRefs; //"ConnectorList" is defined in the beginning of MainForm.
 			ConnectorSetIterator^ csii = connectedSett->ForwardIterator();
 			csii->MoveNext();
 			Connector^ connectedcon = (Connector^)csii->Current;
@@ -501,16 +504,16 @@ namespace FamilyReplace {
 			label1->Text = "Basla";
 			tamsayi = 152;
 			BreakConnection^ brc = gcnew BreakConnection;
-			brc->Execute(cachedUIApp);
+			brc->Execute(cachedUIApp);*/
 		}
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
 		{
-			tamsayi = 266;
+			//tamsayi = 266;
 			//BreakConnection^ brc = gcnew BreakConnection;
 			//brc->Execute(cachedUIApp);
 		}
 	private: System::Void btnInsertFamily_Click(System::Object^ sender, System::EventArgs^ e) 
-		{
+		 {/*
 			//====Insert family instance
 			Transaction^ trx = gcnew Transaction(cachedDoc, "Insert Sprinkler");
 			Reference^ pickRef = nullptr;
@@ -544,6 +547,6 @@ namespace FamilyReplace {
 			trx->Commit();
 
 			//====End of Insert family instance
-		}
+		*/}
   };
 }
