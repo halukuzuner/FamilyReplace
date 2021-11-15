@@ -50,7 +50,7 @@ namespace FamilyReplace
         try
         {
           //=====Create Windows form
-            //TODO: add your code below.
+          //TODO: add your code below.
             MainForm^ newform = gcnew MainForm(exEvent, CachedUIApp); //CREATES A NEW MAINFORM AND PASSES THE REVIT APP TO ACCESS ELEMENTS
             newform->Activate();
             newform->TopMost = true;
@@ -155,8 +155,8 @@ namespace FamilyReplace
       Connector^ conn = connList[0];
 
 
-      Connector^ Con1;
-      Connector^ Con2;
+      //Connector^ Con1;
+      //Connector^ Con2;
       TaskDialog::Show("External Event", "End of button command.");
 /*
       TaskDialog::Show("External Event", "Before Transaction start.");

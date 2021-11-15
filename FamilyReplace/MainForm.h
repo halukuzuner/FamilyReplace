@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "FamilyReplace.h"
+#include "Request.h"
+#include "RequestHandler.cpp"
 
 namespace FamilyReplace {
 
@@ -40,8 +42,9 @@ namespace FamilyReplace {
 	/// <summary>
 	/// Summary for MainForm
 	/// </summary>
-public ref class MainForm : public System::Windows::Forms::Form
-	{
+  public ref class MainForm : public System::Windows::Forms::Form
+  {
+#pragma region Form elements definition
 	private: System::Windows::Forms::CheckedListBox^ checkedListBox1;
 	private: System::Windows::Forms::Button^ btnPickEl1;
 	private: System::Windows::Forms::DataGridView^ dataGridView1;
@@ -62,11 +65,27 @@ public ref class MainForm : public System::Windows::Forms::Form
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column4;
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column5;
 	private: System::Windows::Forms::DataGridViewTextBoxColumn^ Column6;
+#pragma endregion Form elements definition
 
-	//public: static property	Autodesk::Revit::UI::UIApplication^ CachedUIApp;
-	//public: static property	Autodesk::Revit::ApplicationServices::Application^ CachedApp;
-	//public: static property	Autodesk::Revit::DB::Document^ CachedDoc;
+/*
+	/// In this sample, the dialog owns the handler and the event objects,
+	/// but it is not a requirement. They may as well be static properties
+	/// of the application.
 
+	private: RequestHandler m_Handler;
+	private: ExternalEvent m_ExEvent;
+
+	/// <summary>
+	///   Dialog instantiation
+	/// </summary>
+	/// 
+	public: ModelessForm(ExternalEvent^ exEvent, RequestHandler^ handler)
+				 {
+					 InitializeComponent();
+					 m_Handler = handler;
+					 m_ExEvent = exEvent;
+				 }
+*/
 		// Define a reference Object to accept the pick result
 		Reference^ pickedRef = nullptr;
 		// 4. Initialise empty list of connectors
@@ -132,7 +151,7 @@ public ref class MainForm : public System::Windows::Forms::Form
 		/// Required method for Designer support - do not modify
 		/// the contents of this method with the code editor.
 		/// </summary>
-		void InitializeComponent(void)
+	void InitializeComponent(void)
 		{
 			this->btnExit = (gcnew System::Windows::Forms::Button());
 			this->label1 = (gcnew System::Windows::Forms::Label());
@@ -277,7 +296,6 @@ public ref class MainForm : public System::Windows::Forms::Form
 			this->dataGridView2->Name = L"dataGridView2";
 			this->dataGridView2->Size = System::Drawing::Size(652, 226);
 			this->dataGridView2->TabIndex = 10;
-			this->dataGridView2->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &MainForm::dataGridView2_CellContentClick);
 			// 
 			// dataGridViewTextBoxColumn1
 			// 
@@ -364,165 +382,168 @@ public ref class MainForm : public System::Windows::Forms::Form
 			this->PerformLayout();
 
 		}
-#pragma endregion
-	private: System::Void btnExit_Click(System::Object^ sender, System::EventArgs^ e) {
+#pragma endregion Windows Form Designer generated code
+	private: System::Void btnExit_Click(System::Object^ sender, System::EventArgs^ e)
+		{
 		this->Close();
-	}
-	private: System::Void btnSelect_Click(System::Object^ sender, System::EventArgs^ e) {
+		}
+	private: System::Void btnSelect_Click(System::Object^ sender, System::EventArgs^ e)
+		{
 		checkedListBox1->Items->Clear();
 		label2->Text = cachedDoc->PathName;
 		//Pick an element
 		Autodesk::Revit::UI::Selection::Selection^ sel = cachedUIApp->ActiveUIDocument->Selection;
 		System::Collections::Generic::IList<Reference^>^ elem = sel->PickObjects(ObjectType::Element, "Select elements");
 		for (int i = 0; i < elem->Count; i++)
-		{
-			checkedListBox1->Items->Add(elem[i]->ElementId->ToString());
-		}		
-	}
-private: System::Void btnPickEl_Click(System::Object^ sender, System::EventArgs^ e) {
-	checkedListBox1->Items->Clear();
-	dataGridView1->Rows->Clear();
-	dataGridView2->Rows->Clear();
-	connectorList->Clear();
-
-	//Reference^ pickedRef = nullptr;//Moved to form public part.
-	
-	// Pick an element
-	Autodesk::Revit::UI::Selection::Selection^ sel = cachedUIApp->ActiveUIDocument->Selection;
-	pickedRef = sel->PickObject(ObjectType::Element, "Please select an element");
-	Element^ elem = cachedDoc->GetElement(pickedRef);
-
-	checkedListBox1->Items->Add(elem->Id->ToString());
-	
-	// 1. Cast Element to FamilyInstance
-	FamilyInstance^ inst = (FamilyInstance^) elem;
-
-	//Write family name and type to label2
-	SprinklerInstance = inst;
-	label2->Text = inst->Symbol->Family->Name + " -> " + inst->Name ;
-
-	// 2. Get MEPModel Property
-	MEPModel^ mepModel = inst->MEPModel;
-	
-	// 3. Get connector set of MEPModel
-	ConnectorSet^ connectorSet = mepModel->ConnectorManager->Connectors;
-	
-	// 4. Initialise empty list of connectors
-	//List<Connector^>^ connectorList = gcnew List<Connector^>(); (moved to MainForm public)
-	
-	// 5. Loop through connector set and add to list
-	  for each(Connector^ connector in connectorSet)
-		{
-		  connectorList->Add(connector);
-		}
-
-	  for (int i = 0; i < connectorList->Count; i++)
-	  {
-		dataGridView1->Rows->Add(); //Add a row.
-/*
-		if (nullptr != connectorList[i]->Id.ToString()) { checkedListBox1->Items->Add(connectorList[i]->Id.ToString()); }
-														  checkedListBox1->Items->Add(connectorList[i]->Domain);
-		if (nullptr != connectorList[i]->MEPSystem) { checkedListBox1->Items->Add(connectorList[i]->MEPSystem); }
-														checkedListBox1->Items->Add(connectorList[i]->ConnectorType);
-		if (nullptr != connectorList[i]->Owner->Name) { checkedListBox1->Items->Add(connectorList[i]->Owner->Name);}
-														checkedListBox1->Items->Add(connectorList[i]->IsConnected.ToString());
-*/
-														dataGridView1->Rows[i]->Cells[0]->Value = i.ToString();
-		if (nullptr != connectorList[i]->Id.ToString()) {dataGridView1->Rows[i]->Cells[1]->Value=connectorList[i]->Id.ToString(); }
-														dataGridView1->Rows[i]->Cells[2]->Value=connectorList[i]->Domain;
-		if (nullptr != connectorList[i]->MEPSystem)		{dataGridView1->Rows[i]->Cells[3]->Value=connectorList[i]->MEPSystem; }
-														dataGridView1->Rows[i]->Cells[4]->Value=connectorList[i]->ConnectorType;
-														dataGridView1->Rows[i]->Cells[5]->Value=connectorList[i]->Owner->Name;
-	  }
-	  btnDisconnect->Enabled = true;
-  }
-private: System::Void dataGridView1_RowHeaderMouseClick(System::Object^ sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^ e) {
-	
-	dataGridView2->Rows->Clear();	//Clear DataGrid.
-
-	if (connectorList[e->RowIndex]->IsConnected == true)
-	{
-		ConnectorSet^ connectedSet = connectorList[e->RowIndex]->AllRefs;
-		ConnectorSetIterator^ csi = connectedSet->ForwardIterator();
-		
-		while (csi->MoveNext())
-		{
-			int counter = 0;
-			dataGridView2->Rows->Add(); //Add a row.
-			connected = (Connector^)csi->Current;
-
-			if (nullptr != connected)
 			{
-				dataGridView2->Rows[counter]->Cells[0]->Value = "connected to";
-				dataGridView2->Rows[counter]->Cells[1]->Value = connected->Owner->Name;
-				dataGridView2->Rows[counter]->Cells[2]->Value = "Connector Type";
-				dataGridView2->Rows[counter]->Cells[3]->Value = connected->ConnectorType;
-				dataGridView2->Rows[counter]->Cells[4]->Value = connected->Id.ToString();
-				dataGridView2->Rows[counter]->Cells[5]->Value = counter.ToString();
-				//connectorList[e->RowIndex]->DisconnectFrom(connected);
-			}
-			counter++;
+				checkedListBox1->Items->Add(elem[i]->ElementId->ToString());
+			}		
 		}
-	}
-}
-private: System::Void btnDisconnect_Click(System::Object^ sender, System::EventArgs^ e) {	
-	ConnectorSet^ connectedSett = connectorList[0]->AllRefs; //"ConnectorList" is defined in the beginning of MainForm.
-	ConnectorSetIterator^ csii = connectedSett->ForwardIterator();
-	csii->MoveNext();
-	Connector^ connectedcon = (Connector^)csii->Current;
-	Connector^ conn = connectorList[0];
+	private: System::Void btnPickEl_Click(System::Object^ sender, System::EventArgs^ e)
+		{
+		checkedListBox1->Items->Clear();
+		dataGridView1->Rows->Clear();
+		dataGridView2->Rows->Clear();
+		connectorList->Clear();
 
-	con1 = connectedcon;
-	con2 = conn;
+		//Reference^ pickedRef = nullptr;//Moved to form public part.
 	
-	label1->Text = "Basla";
-	tamsayi = 152;
-	BreakConnection^ brc = gcnew BreakConnection;
-	brc->Execute(cachedUIApp);
+		// Pick an element
+		Autodesk::Revit::UI::Selection::Selection^ sel = cachedUIApp->ActiveUIDocument->Selection;
+		pickedRef = sel->PickObject(ObjectType::Element, "Please select an element");
+		Element^ elem = cachedDoc->GetElement(pickedRef);
 
-	}
-private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-		tamsayi = 266;
-		BreakConnection^ brc = gcnew BreakConnection;
-		brc->Execute(cachedUIApp);
-	}
-private: System::Void dataGridView2_CellContentClick(System::Object^ sender, System::Windows::Forms::DataGridViewCellEventArgs^ e) {
-}
-private: System::Void btnInsertFamily_Click(System::Object^ sender, System::EventArgs^ e) {
-	//====Insert family instance
-	Transaction^ trx = gcnew Transaction(cachedDoc, "Insert Sprinkler");
-	Reference^ pickRef = nullptr;
-	Autodesk::Revit::UI::Selection::Selection^ sel1 = cachedUIApp->ActiveUIDocument->Selection;
-	pickRef = sel1->PickObject(ObjectType::Element, "Please select an element");
-	Element^ elem1 = cachedDoc->GetElement(pickRef);
+		checkedListBox1->Items->Add(elem->Id->ToString());
+	
+		// 1. Cast Element to FamilyInstance
+		FamilyInstance^ inst = (FamilyInstance^) elem;
 
-	XYZ^ pnt = gcnew XYZ(0, 0, 0);
-	XYZ^ pntdir = gcnew XYZ(0, 0, 1);
-	Level^ Level1;
-	//TaskDialog::Show("External Event", elem1.na );
+		//Write family name and type to label2
+		SprinklerInstance = inst;
+		label2->Text = inst->Symbol->Family->Name + " -> " + inst->Name ;
 
-	FilteredElementCollector^ collector = gcnew FilteredElementCollector(cachedDoc);
-	//Type^ t = Level1::typeid;
-	collector->OfClass(FamilySymbol::typeid)->OfCategory(BuiltInCategory::OST_Sprinklers);
+		// 2. Get MEPModel Property
+		MEPModel^ mepModel = inst->MEPModel;
+	
+		// 3. Get connector set of MEPModel
+		ConnectorSet^ connectorSet = mepModel->ConnectorManager->Connectors;
+	
+		// 4. Initialise empty list of connectors
+		//List<Connector^>^ connectorList = gcnew List<Connector^>(); (moved to MainForm public)
+	
+		// 5. Loop through connector set and add to list
+		for each(Connector^ connector in connectorSet)
+		{
+			connectorList->Add(connector);
+		}
 
-	FamilySymbol^ gotSymbol = (FamilySymbol^)collector->FirstElement();
+		for (int i = 0; i < connectorList->Count; i++)
+			{
+			dataGridView1->Rows->Add(); //Add a row.
+			/*
+			if (nullptr != connectorList[i]->Id.ToString()) { checkedListBox1->Items->Add(connectorList[i]->Id.ToString()); }
+																checkedListBox1->Items->Add(connectorList[i]->Domain);
+			if (nullptr != connectorList[i]->MEPSystem) { checkedListBox1->Items->Add(connectorList[i]->MEPSystem); }
+															checkedListBox1->Items->Add(connectorList[i]->ConnectorType);
+			if (nullptr != connectorList[i]->Owner->Name) { checkedListBox1->Items->Add(connectorList[i]->Owner->Name);}
+															checkedListBox1->Items->Add(connectorList[i]->IsConnected.ToString());
+			*/
+															dataGridView1->Rows[i]->Cells[0]->Value = i.ToString();
+			if (nullptr != connectorList[i]->Id.ToString()) {dataGridView1->Rows[i]->Cells[1]->Value=connectorList[i]->Id.ToString(); }
+															dataGridView1->Rows[i]->Cells[2]->Value=connectorList[i]->Domain;
+			if (nullptr != connectorList[i]->MEPSystem)		{dataGridView1->Rows[i]->Cells[3]->Value=connectorList[i]->MEPSystem; }
+															dataGridView1->Rows[i]->Cells[4]->Value=connectorList[i]->ConnectorType;
+															dataGridView1->Rows[i]->Cells[5]->Value=connectorList[i]->Owner->Name;
+			}
+		btnDisconnect->Enabled = true;
+		}
+	private: System::Void dataGridView1_RowHeaderMouseClick(System::Object^ sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^ e)
+		{
+	
+			dataGridView2->Rows->Clear();	//Clear DataGrid.
 
-	FamilyInstance^ FInstance = nullptr;
-	trx->Start();
-	TaskDialog::Show("trasaction başladı mı?", trx->GetStatus().ToString());
-	if (nullptr != gotSymbol)
-	{
-		TaskDialog::Show("Inside if", "Inside if.");
-		gotSymbol->Activate();
-		FInstance = (FamilyInstance^)cachedDoc->Create->
-			NewFamilyInstance(pnt, gotSymbol, Level1, StructuralType::NonStructural);
+			if (connectorList[e->RowIndex]->IsConnected == true)
+			{
+				ConnectorSet^ connectedSet = connectorList[e->RowIndex]->AllRefs;
+				ConnectorSetIterator^ csi = connectedSet->ForwardIterator();
+		
+				while (csi->MoveNext())
+				{
+					int counter = 0;
+					dataGridView2->Rows->Add(); //Add a row.
+					connected = (Connector^)csi->Current;
 
-		TaskDialog::Show("After insert family instance", "After insert family instance");
-	}
-	trx->Commit();
+					if (nullptr != connected)
+					{
+						dataGridView2->Rows[counter]->Cells[0]->Value = "connected to";
+						dataGridView2->Rows[counter]->Cells[1]->Value = connected->Owner->Name;
+						dataGridView2->Rows[counter]->Cells[2]->Value = "Connector Type";
+						dataGridView2->Rows[counter]->Cells[3]->Value = connected->ConnectorType;
+						dataGridView2->Rows[counter]->Cells[4]->Value = connected->Id.ToString();
+						dataGridView2->Rows[counter]->Cells[5]->Value = counter.ToString();
+						//connectorList[e->RowIndex]->DisconnectFrom(connected);
+					}
+					counter++;
+				}
+			}
+		}
+	private: System::Void btnDisconnect_Click(System::Object^ sender, System::EventArgs^ e) 
+		{	
+			ConnectorSet^ connectedSett = connectorList[0]->AllRefs; //"ConnectorList" is defined in the beginning of MainForm.
+			ConnectorSetIterator^ csii = connectedSett->ForwardIterator();
+			csii->MoveNext();
+			Connector^ connectedcon = (Connector^)csii->Current;
+			Connector^ conn = connectorList[0];
 
-	//====End of Insert family instance
+			con1 = connectedcon;
+			con2 = conn;
+	
+			label1->Text = "Basla";
+			tamsayi = 152;
+			BreakConnection^ brc = gcnew BreakConnection;
+			brc->Execute(cachedUIApp);
+		}
+	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
+		{
+			tamsayi = 266;
+			//BreakConnection^ brc = gcnew BreakConnection;
+			//brc->Execute(cachedUIApp);
+		}
+	private: System::Void btnInsertFamily_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			//====Insert family instance
+			Transaction^ trx = gcnew Transaction(cachedDoc, "Insert Sprinkler");
+			Reference^ pickRef = nullptr;
+			Autodesk::Revit::UI::Selection::Selection^ sel1 = cachedUIApp->ActiveUIDocument->Selection;
+			pickRef = sel1->PickObject(ObjectType::Element, "Please select an element");
+			Element^ elem1 = cachedDoc->GetElement(pickRef);
 
-}
-};
+			XYZ^ pnt = gcnew XYZ(0, 0, 0);
+			XYZ^ pntdir = gcnew XYZ(0, 0, 1);
+			Level^ Level1;
+			//TaskDialog::Show("External Event", elem1.na );
+
+			FilteredElementCollector^ collector = gcnew FilteredElementCollector(cachedDoc);
+			//Type^ t = Level1::typeid;
+			collector->OfClass(FamilySymbol::typeid)->OfCategory(BuiltInCategory::OST_Sprinklers);
+
+			FamilySymbol^ gotSymbol = (FamilySymbol^)collector->FirstElement();
+
+			FamilyInstance^ FInstance = nullptr;
+			trx->Start();
+			TaskDialog::Show("trasaction basladi mi?", trx->GetStatus().ToString());
+			if (nullptr != gotSymbol)
+			{
+				TaskDialog::Show("Inside if", "Inside if.");
+				gotSymbol->Activate();
+				FInstance = (FamilyInstance^)cachedDoc->Create->
+					NewFamilyInstance(pnt, gotSymbol, Level1, StructuralType::NonStructural);
+
+				TaskDialog::Show("After insert family instance", "After insert family instance");
+			}
+			trx->Commit();
+
+			//====End of Insert family instance
+		}
+  };
 }

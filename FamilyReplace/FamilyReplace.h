@@ -1,4 +1,4 @@
-// FamilyReplace.h
+// FamilReplace.h
 #pragma once
 
 #pragma region namespaces 
@@ -37,11 +37,10 @@ namespace FamilyReplace {
     static int tamsayi;
 
 #pragma region Event Handler definition
-    // A new handler to handle request posting by the dialog
-    //ExternalEventExample^ handler = gcnew ExternalEventExample();
-
-    // External Event for the dialog to use (to post requests)
-    //ExternalEvent^ exEvent = exEvent->Create(handler);
+  // A new handler to handle request posting by the dialog
+  //ExternalEventExample^ handler = gcnew ExternalEventExample();
+  // External Event for the dialog to use (to post requests)
+  //ExternalEvent^ exEvent = exEvent->Create(handler);
 #pragma endregion
 
     [Transaction(TransactionMode::Manual)]
